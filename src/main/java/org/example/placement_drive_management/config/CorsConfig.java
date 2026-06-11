@@ -29,8 +29,8 @@ public class CorsConfig {
                 "http://localhost:5177",
                 "http://127.0.0.1:5177",
                 "http://localhost:5178",
-                "http://127.0.0.1:5178"
-
+                "http://127.0.0.1:5178",
+                "https://drive-flow-eight.vercel.app"
         ));
 
         config.setAllowedHeaders(List.of("*"));
