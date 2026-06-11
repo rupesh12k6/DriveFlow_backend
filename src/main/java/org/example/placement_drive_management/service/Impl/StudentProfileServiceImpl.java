@@ -1,6 +1,6 @@
 package org.example.placement_drive_management.service.Impl;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.example.placement_drive_management.dto.*;
 import org.example.placement_drive_management.entity.*;
 import org.example.placement_drive_management.exceptions.ResourceNotFoundException;
@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 public class StudentProfileServiceImpl implements StudentProfileService {
 
     private final StudentProfileRepository studentProfileRepository;
@@ -38,16 +38,9 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     private final DriveRepository driveRepository;
     private final ApplicationRoundRepository applicationRoundRepository;
     private final CloudinaryService cloudinaryService;
-    public StudentProfileServiceImpl(StudentProfileRepository studentProfileRepository, StudentRepository studentRepository,ApplicationRepository applicationRepository,DriveRepository driveRepository, ApplicationRoundRepository applicationRoundRepository, CloudinaryService cloudinaryService) {
-        this.studentProfileRepository = studentProfileRepository;
-        this.studentRepository = studentRepository;
-        this.applicationRepository=applicationRepository;
-        this.driveRepository = driveRepository;
-        this.applicationRoundRepository=applicationRoundRepository;
-        this.cloudinaryService = cloudinaryService;
-    }
 
     @Override
+    @Transactional
     public String createStudentProfile( StudentProfileDto studentProfileDto,String  rollNo) {
         Student student = studentRepository.findByRollNo(rollNo)
                 .orElseThrow(() ->
@@ -74,6 +67,7 @@ public class StudentProfileServiceImpl implements StudentProfileService {
 
 
     @Override
+    @Transactional
     public String updateStudentProfile(
                                        StudentProfileDto studentProfileDto,String rollNo) {
 
@@ -98,6 +92,7 @@ public class StudentProfileServiceImpl implements StudentProfileService {
         return "Profile Updated Successfully";
     }
     @Override
+    @Transactional(readOnly = true)
     public StudentProfileDto getStudentProfile(String rollNo) {
         StudentProfile studentProfile=studentProfileRepository.findByStudentRollNo(rollNo)
                 .orElseThrow(() ->
@@ -106,8 +101,8 @@ public class StudentProfileServiceImpl implements StudentProfileService {
         return StudentProfileMapper.maptoStudentProfileDto(studentProfile);
     }
     @Override
+    @Transactional(readOnly = true)
     public PageResponse<ApplicationsDto> getAllApplicationsForStudent(String studentRollNo, int page, int size) {
-        studentRepository.findByRollNo(studentRollNo).orElseThrow(() -> new ResourceNotFoundException("Student with Roll No: " + studentRollNo + " not found"));
         Pageable pageable = PageRequest.of(
                 page,
                 size,
@@ -128,12 +123,14 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ApplicationRoundDto> getAllApplicationRoundsForStudentAndDriveId(String driveId, String rollNumberInContext) {
         List<ApplicationRound>applicationRounds = applicationRoundRepository.findAllRoundDetails(driveId, rollNumberInContext);
         return applicationRounds.stream().map(ApplicationRoundMapper::maptoApplicationRoundDto).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional
     public String applyDrive(String driveId, String rollNo) {
 
         Applications application = applicationRepository
@@ -164,8 +161,8 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PageResponse<ApplicationsDto> getAllEligibleApplications(String rollNo,int page,int size){
-        studentRepository.findByRollNo(rollNo).orElseThrow(()->new ResourceNotFoundException("Student with Roll No :"+rollNo+"not found"));
         Pageable pageable = PageRequest.of(page,size,Sort.by("appliedDate").descending());
         Page<ApplicationsDto> applicationsDtos = applicationRepository.findByApplicationsByStudentRollNoByStatusEligible(rollNo,pageable,"ELIGIBLE").map(application -> {
             ApplicationsDto applicationsDto = ApplicationsMapper.mapToApplicationDto(application);
@@ -191,6 +188,7 @@ public class StudentProfileServiceImpl implements StudentProfileService {
                         "Profile not found for student: " + email));
     }
     @Override
+    @Transactional
     public String uploadResume(MultipartFile file, String email) {
         if (file == null || file.isEmpty())
             throw new IllegalArgumentException("File must not be empty");
@@ -219,6 +217,7 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ResponseEntity<byte[]> streamResume(String email) {
         StudentProfile profile = getProfileByEmail(email);
         if (profile.getResumeUrl() == null) {
@@ -237,11 +236,13 @@ public class StudentProfileServiceImpl implements StudentProfileService {
         }
     }
     @Override
+    @Transactional(readOnly = true)
     public long countEligibleDrives(String rollNo) {
         return applicationRepository.countByStudent_RollNoAndStatus(rollNo, "ELIGIBLE");
     }
 
     @Override
+    @Transactional(readOnly = true)
     public long countApplicationsByStatus(String rollNo, String status) {
         return applicationRepository.countByStudent_RollNoAndStatus(rollNo, status);
     }

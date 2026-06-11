@@ -16,7 +16,8 @@ import java.util.Optional;
 @Repository
 public interface ApplicationRepository extends JpaRepository<Applications, Long> {
 
-    Page<Applications> findByDrive_DriveId(String driveId,Pageable pageable);
+    @Query("SELECT ap FROM Applications ap JOIN FETCH ap.student s JOIN FETCH ap.drive d JOIN FETCH d.company c WHERE d.driveId = :driveId")
+    Page<Applications> findByDrive_DriveId(@Param("driveId") String driveId, Pageable pageable);
 
     Page<Applications> findByStudent_RollNo(String rollNo, Pageable pageable);
     @Query("select ap from Applications ap join fetch ap.drive d join fetch ap.student s where d.driveId = :driveId and s.rollNo = :rollNo")
@@ -38,7 +39,8 @@ public interface ApplicationRepository extends JpaRepository<Applications, Long>
             SELECT ap FROM Applications ap
             JOIN FETCH ap.drive d
             JOIN FETCH d.company c
-            WHERE ap.student.rollNo = :rollNo
+            JOIN FETCH ap.student s
+            WHERE s.rollNo = :rollNo
             AND ap.status <> :status
         """,
             countQuery = """
@@ -57,7 +59,8 @@ public interface ApplicationRepository extends JpaRepository<Applications, Long>
             SELECT ap FROM Applications ap
             JOIN FETCH ap.drive d
             JOIN FETCH d.company c
-            WHERE ap.student.rollNo = :rollNo
+            JOIN FETCH ap.student s
+            WHERE s.rollNo = :rollNo
             AND ap.status = :status
         """,
             countQuery = """

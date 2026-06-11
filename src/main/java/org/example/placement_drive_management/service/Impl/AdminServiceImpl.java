@@ -1,6 +1,6 @@
 package org.example.placement_drive_management.service.Impl;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.example.placement_drive_management.dto.*;
 import org.example.placement_drive_management.dto.auth.ApiResponse;
